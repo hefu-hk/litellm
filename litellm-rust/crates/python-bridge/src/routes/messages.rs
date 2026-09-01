@@ -1,6 +1,6 @@
 use std::future::Future;
 
-use litellm_core::error::CoreResult;
+use litellm_core::error::Error;
 use litellm_core::messages::messages as run_messages;
 use litellm_core::messages::types::{AnthropicMessagesResponse, MessagesRequest};
 use pyo3::prelude::*;
@@ -11,7 +11,7 @@ use crate::marshal::{RouteOptions, RouteOptionsInputs, required_value};
 
 fn prepare_messages(
     inputs: MessagesInputs,
-) -> PyResult<impl Future<Output = CoreResult<AnthropicMessagesResponse>> + Send + 'static> {
+) -> PyResult<impl Future<Output = Result<AnthropicMessagesResponse, Error>> + Send + 'static> {
     let body = required_value("body", inputs.body, Value::is_object, "dict")?;
     let options = RouteOptions::from_python(RouteOptionsInputs {
         model: inputs.model,
