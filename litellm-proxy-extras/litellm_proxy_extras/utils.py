@@ -291,15 +291,20 @@ class ProxyExtrasDBManager:
         except ImportError:
             return ""
 
+        from psycopg import sql
+
         cleaned_url = ProxyExtrasDBManager._strip_prisma_query_params(database_url)
+        schema = ProxyExtrasDBManager._prisma_schema_param(database_url) or "public"
         try:
             with psycopg.connect(
                 cleaned_url, connect_timeout=10, autocommit=True
             ) as conn:
                 row = conn.execute(
-                    "SELECT logs FROM _prisma_migrations "
-                    "WHERE migration_name = %s AND finished_at IS NULL "
-                    "AND rolled_back_at IS NULL",
+                    sql.SQL(
+                        "SELECT logs FROM {}._prisma_migrations "
+                        "WHERE migration_name = %s AND finished_at IS NULL "
+                        "AND rolled_back_at IS NULL"
+                    ).format(sql.Identifier(schema)),
                     (migration_name,),
                 ).fetchone()
         except (psycopg.OperationalError, psycopg.DatabaseError):
