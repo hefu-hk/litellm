@@ -669,8 +669,11 @@ class InMemoryGuardrailHandler:
         tracked_callbacks[0].update_in_memory_litellm_params(litellm_params=updated_litellm_params)
         for sibling_callback in tracked_callbacks[1:]:
             sibling_stage = sibling_callback.event_hook
+            sibling_output_parse_pii = getattr(sibling_callback, "output_parse_pii", None)
             sibling_callback.update_in_memory_litellm_params(litellm_params=updated_litellm_params)
             sibling_callback.event_hook = sibling_stage
+            if hasattr(sibling_callback, "output_parse_pii"):
+                sibling_callback.output_parse_pii = sibling_output_parse_pii
 
     def delete_in_memory_guardrail(self, guardrail_id: str) -> None:
         """
